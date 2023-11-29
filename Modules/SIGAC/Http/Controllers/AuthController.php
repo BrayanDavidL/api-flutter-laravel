@@ -6,8 +6,8 @@ namespace Modules\SIGAC\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Routing\Controller;
-use Modules\SICA\Entities\Apprentice;
 use App\Models\User;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -37,27 +37,30 @@ class AuthController extends Controller
         ]);
     }
 
-    // Login user
     public function login(Request $request)
-    {
-    
-        $attrs = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|min:6'
-        ]);
+{
+    // Validar los datos de entrada
+    $validator = Validator::make($request->all(), [
+        'email' => 'required|email',
+        'password' => 'required',
+    ]);
 
-
-        if (!Auth::attempt($attrs)) {
-            return response([
-                'message' => 'Invalid Credentials',
-            ], 403);
-        }
-
-        return response([
-            'user' => auth()->user(),
-            'token' => auth()->user()->createToken('secret')->plainTextToken
-        ], 200);
+    if ($validator->fails()) {
+        return response()->json(['error' => 'Invalid data'], 400);
     }
+
+    // Intentar autenticar al usuario
+    $credentials = $request->only('email', 'password');
+
+    if (Auth::attempt($credentials)) {
+        $user = User::user();
+        $token = $user->createToken('authToken')->plainTextToken;
+
+        return response()->json(['user' => $user, 'token' => $token], 200);
+    } else {
+        return response()->json(['error' => 'Invalid Credentials'], 403);
+    }
+}
 
     // Logout user
     public function logout()

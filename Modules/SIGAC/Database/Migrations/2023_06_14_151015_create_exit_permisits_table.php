@@ -21,7 +21,7 @@ class CreateExitPermisitsTable extends Migration
             $table->unsignedBigInteger('type_permission_id');
             $table->timestamps();
             $table->foreign('person_id')->references('id')->on('people');
-            $table->foreign('type_permission_id')->references('id')->on('type_permissions');
+            $table->foreign('type_permission_id')->references('id')->on('types_permissions');
         });
     }
 
